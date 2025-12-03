@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Output
+output/
+*.log
+
+# Backup
+*_backup.py
+
+# MCP Server (不需要)
+mcp_server/
+
+# Docker (如果不需要)
+docker/
+
+# 其他不需要的文件
+index.html
+setup-*.sh
+setup-*.bat
+start-http.*
+.dockerignore
