@@ -88,6 +88,8 @@ notification:
     ntfy_token: "" # ntfy访问令牌（可选，用于私有主题）
     bark_url: "" # Bark推送URL（格式：https://api.day.app/your_device_key 或自建服务器地址）
     slack_webhook_url: "" # Slack Incoming Webhook URL（格式：https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX）
+    line_channel_access_token: "" # LINE Channel Access Token（用於發送 LINE 消息）
+    line_user_id: "" # LINE User ID 或 Group ID（消息接收者）
 
 # 用于让关注度更高的新闻在更前面显示，即用算法重新组合不同平台的热搜排序形成你侧重的热搜，合起来是 1 就行
 weight:

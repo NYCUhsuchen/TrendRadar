@@ -1,0 +1,158 @@
+# TrendRadar 學術論文監控配置示例
+# 此配置文件展示如何配置學術平台（arXiv、PubMed等）監控
+
+app:
+  version_check_url: "https://raw.githubusercontent.com/sansan0/TrendRadar/refs/heads/master/version"
+  show_version_update: true
+
+crawler:
+  request_interval: 2000 # 請求間隔(毫秒)，學術 API 建議設置較長間隔
+  enable_crawler: true
+  use_proxy: false
+  default_proxy: "http://127.0.0.1:10086"
+
+report:
+  mode: "daily" # 推薦使用 daily 模式獲取每日學術論文匯總
+  rank_threshold: 10 # 學術論文建議設置較大閾值
+  sort_by_position_first: true # 建議按配置順序優先，以便按研究領域分類
+  max_news_per_keyword: 20 # 限制每個關鍵詞最多顯示論文數
+
+notification:
+  enable_notification: true
+  message_batch_size: 4000
+  dingtalk_batch_size: 20000
+  feishu_batch_size: 29000
+  bark_batch_size: 3600
+  slack_batch_size: 4000
+  batch_send_interval: 3
+  feishu_message_separator: "━━━━━━━━━━━━━━━━━━━"
+
+  push_window:
+    enabled: false
+    time_range:
+      start: "09:00"
+      end: "18:00"
+    once_per_day: true
+    push_record_retention_days: 7
+
+  webhooks:
+    feishu_url: ""
+    dingtalk_url: ""
+    wework_url: ""
+    wework_msg_type: "markdown"
+    telegram_bot_token: ""
+    telegram_chat_id: ""
+    
+    # Email 推送（推薦用於學術論文，支持 HTML 格式）
+    email_from: "" # 發件人郵箱
+    email_password: "" # 郵箱密碼或授權碼
+    email_to: "" # 收件人郵箱，多個用逗號分隔
+    email_smtp_server: ""
+    email_smtp_port: ""
+    
+    # LINE 推送（推薦用於學術論文）
+    line_channel_access_token: "" # LINE Channel Access Token
+    line_user_id: "" # LINE User ID 或 Group ID
+    
+    ntfy_server_url: "https://ntfy.sh"
+    ntfy_topic: ""
+    ntfy_token: ""
+    bark_url: ""
+    slack_webhook_url: ""
+
+weight:
+  rank_weight: 0.5 # 學術論文建議降低排名權重
+  frequency_weight: 0.3
+  hotness_weight: 0.2 # 增加熱度權重以反映引用和討論
+
+# 學術平台配置
+platforms:
+  # arXiv - 計算機科學類
+  - id: "arxiv_cs_ai"
+    name: "arXiv 人工智能"
+    type: "arxiv"
+    query: "cat:cs.AI" # arXiv 類別查詢
+    max_results: 30
+  
+  - id: "arxiv_cs_cv"
+    name: "arXiv 計算機視覺"
+    type: "arxiv"
+    query: "cat:cs.CV"
+    max_results: 30
+  
+  - id: "arxiv_cs_lg"
+    name: "arXiv 機器學習"
+    type: "arxiv"
+    query: "cat:cs.LG"
+    max_results: 30
+  
+  - id: "arxiv_cs_cl"
+    name: "arXiv 自然語言處理"
+    type: "arxiv"
+    query: "cat:cs.CL"
+    max_results: 30
+  
+  - id: "arxiv_cs_ro"
+    name: "arXiv 機器人學"
+    type: "arxiv"
+    query: "cat:cs.RO"
+    max_results: 20
+  
+  # arXiv - 關鍵詞搜索示例
+  - id: "arxiv_llm"
+    name: "arXiv 大語言模型"
+    type: "arxiv"
+    query: "all:large+language+model" # 在所有字段中搜索
+    max_results: 30
+  
+  - id: "arxiv_diffusion"
+    name: "arXiv Diffusion模型"
+    type: "arxiv"
+    query: "all:diffusion+model"
+    max_results: 20
+  
+  # PubMed - 生物醫學類
+  - id: "pubmed_ai_medicine"
+    name: "PubMed AI醫學"
+    type: "pubmed"
+    query: "artificial intelligence AND medicine"
+    max_results: 20
+    days_back: 7 # 獲取最近7天的論文
+  
+  - id: "pubmed_cancer"
+    name: "PubMed 癌症研究"
+    type: "pubmed"
+    query: "cancer therapy"
+    max_results: 20
+    days_back: 7
+  
+  # 注意：也可以混合配置社交媒體平台和學術平台
+  # 例如監控學術圈的社交媒體討論
+  # - id: "zhihu"
+  #   name: "知乎"
+  #   type: "social" # 可選，默認為社交媒體
+
+# arXiv 查詢語法說明：
+# 1. 按類別查詢：cat:cs.AI（計算機科學-人工智能）
+# 2. 按關鍵詞：ti:neural network（標題中包含）
+# 3. 按作者：au:hinton（作者名）
+# 4. 按摘要：abs:transformer（摘要中包含）
+# 5. 組合查詢：all:machine+learning+AND+cat:cs.LG
+#
+# arXiv 主要類別：
+# - cs.AI: 人工智能
+# - cs.CV: 計算機視覺與模式識別
+# - cs.LG: 機器學習
+# - cs.CL: 計算與語言（NLP）
+# - cs.RO: 機器人學
+# - cs.CR: 密碼學與安全
+# - cs.DB: 數據庫
+# - cs.DC: 分佈式計算
+# - stat.ML: 統計-機器學習
+# - math.OC: 優化與控制
+#
+# PubMed 查詢語法：
+# - 關鍵詞：artificial intelligence
+# - AND/OR/NOT: 邏輯運算符
+# - [MeSH]: 醫學主題詞
+# - [Title]: 限制在標題中搜索

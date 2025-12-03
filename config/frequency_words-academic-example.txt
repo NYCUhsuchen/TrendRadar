@@ -1,0 +1,125 @@
+# TrendRadar 學術關鍵詞配置示例
+# 用於過濾和分類感興趣的學術論文
+
+# 深度學習基礎
+Transformer
+Attention
+BERT
+GPT
+ViT
+Diffusion
+
+# 大語言模型
+Large Language Model
+LLM
+ChatGPT
+Claude
+Gemini
++training
++fine-tuning
+
+# 計算機視覺
+Computer Vision
+Image
+Object Detection
+Segmentation
++deep learning
+
+# 自然語言處理
+NLP
+Natural Language Processing
+Text Generation
+Question Answering
+Machine Translation
+
+# 強化學習
+Reinforcement Learning
+RL
+Q-Learning
+Policy Gradient
++robot
+
+# 生成模型
+Generative Model
+GAN
+VAE
+Diffusion Model
+Stable Diffusion
++image synthesis
+
+# 多模態學習
+Multimodal
+Vision-Language
+CLIP
+ALIGN
++understanding
+
+# 模型優化
+Model Compression
+Quantization
+Pruning
+Knowledge Distillation
+Efficient
+
+# 可解釋AI
+Explainable AI
+XAI
+Interpretability
+Attention Visualization
+
+# 聯邦學習
+Federated Learning
+Privacy
+Differential Privacy
+
+# 圖神經網絡
+Graph Neural Network
+GNN
+Graph
+Node Classification
+
+# 醫學AI（適用於 PubMed）
+Medical Imaging
+Diagnosis
+Clinical
+Disease Prediction
++AI
++deep learning
+
+# 藥物發現
+Drug Discovery
+Molecule
+Protein
++machine learning
+
+# 基因組學
+Genomics
+DNA
+RNA
+Gene Expression
++analysis
+
+# 過濾詞示例
+!survey # 排除綜述類論文
+!review # 排除評論類論文
+!tutorial # 排除教程
+
+# 特定作者或機構（如果想重點關注）
+# OpenAI
+# DeepMind
+# Meta AI
+# Stanford
+# MIT
+
+# 應用領域
+Autonomous Driving
+自動駕駛
+Robotics
+機器人
+Finance
+金融
+Healthcare
+醫療
+
+# 數量限制示例
+# @10  # 每組最多顯示10篇論文
