@@ -8,6 +8,13 @@ import requests
 from typing import Optional, Dict
 
 
+# 常量定義
+LINE_TEXT_LIMIT = 5000  # LINE 文本消息長度限制
+MAX_FLEX_CARDS = 10     # Flex Message 最大卡片數
+MAX_AUTHORS_DISPLAY = 3 # 顯示的最大作者數
+TITLE_DISPLAY_LENGTH = 80  # 標題顯示長度
+
+
 class LineNotifier:
     """LINE Messaging API 通知器"""
     
@@ -143,16 +150,16 @@ def create_paper_flex_message(papers_data: Dict) -> Dict:
     """
     bubbles = []
     
-    # 只顯示前 10 篇論文，避免消息過長
+    # 只顯示前 MAX_FLEX_CARDS 篇論文，避免消息過長
     stats = papers_data.get('stats', [])
     count = 0
     
     for stat in stats:
-        if count >= 10:
+        if count >= MAX_FLEX_CARDS:
             break
             
         for title_data in stat.get('titles', []):
-            if count >= 10:
+            if count >= MAX_FLEX_CARDS:
                 break
             
             title = title_data.get('title', '')
@@ -160,8 +167,8 @@ def create_paper_flex_message(papers_data: Dict) -> Dict:
             url = title_data.get('url', '')
             
             # 截斷過長的標題
-            if len(title) > 100:
-                title = title[:97] + "..."
+            if len(title) > TITLE_DISPLAY_LENGTH:
+                title = title[:TITLE_DISPLAY_LENGTH-3] + "..."
             
             bubble = {
                 "type": "bubble",
@@ -267,9 +274,9 @@ def send_to_line(
         # 使用純文本消息
         text = format_text_message(report_data, report_type)
         
-        # LINE 文本消息限制 5000 字符
-        if len(text) > 5000:
-            text = text[:4997] + "..."
+        # LINE 文本消息限制
+        if len(text) > LINE_TEXT_LIMIT:
+            text = text[:LINE_TEXT_LIMIT-3] + "..."
             
         return notifier.send_text_message(user_id, text)
 
@@ -306,8 +313,8 @@ def format_text_message(report_data: Dict, report_type: str) -> str:
                 url = title_data.get('url', '')
                 
                 # 截斷標題
-                if len(title) > 80:
-                    title = title[:77] + "..."
+                if len(title) > TITLE_DISPLAY_LENGTH:
+                    title = title[:TITLE_DISPLAY_LENGTH-3] + "..."
                 
                 lines.append(f"{idx}. [{source_name}] {title}")
                 if url:

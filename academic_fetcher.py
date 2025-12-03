@@ -13,6 +13,12 @@ from typing import Dict, List, Tuple, Optional
 from urllib.parse import quote
 
 
+# 常量定義
+PUBMED_API_DELAY = 0.5  # PubMed API 調用間隔（秒）
+MAX_AUTHORS_DISPLAY = 3  # 顯示的最大作者數
+MAX_SUMMARY_LENGTH = 300  # 摘要最大長度
+
+
 class AcademicFetcher:
     """學術平台數據獲取器"""
     
@@ -129,7 +135,7 @@ class AcademicFetcher:
                     paper = {
                         "title": title,
                         "authors": authors,
-                        "summary": summary[:300] + "..." if len(summary) > 300 else summary,  # 限制摘要長度
+                        "summary": summary[:MAX_SUMMARY_LENGTH] + "..." if len(summary) > MAX_SUMMARY_LENGTH else summary,
                         "url": url,
                         "published": published,
                         "categories": categories,
@@ -204,7 +210,7 @@ class AcademicFetcher:
                 "retmode": "xml"
             }
             
-            time.sleep(0.5)  # API 限流
+            time.sleep(PUBMED_API_DELAY)  # API 限流
             
             fetch_response = requests.get(
                 fetch_url,
@@ -273,7 +279,7 @@ class AcademicFetcher:
                     paper = {
                         "title": title.strip() if title else "",
                         "authors": authors,
-                        "summary": abstract[:300] + "..." if abstract and len(abstract) > 300 else abstract,
+                        "summary": abstract[:MAX_SUMMARY_LENGTH] + "..." if abstract and len(abstract) > MAX_SUMMARY_LENGTH else abstract,
                         "url": url,
                         "published": published,
                         "source": "PubMed",
@@ -315,9 +321,9 @@ class AcademicFetcher:
             # 構建標題（包含作者信息）
             title = paper['title']
             if paper.get('authors'):
-                # 只顯示前 3 位作者
-                author_str = ", ".join(paper['authors'][:3])
-                if len(paper['authors']) > 3:
+                # 只顯示前 MAX_AUTHORS_DISPLAY 位作者
+                author_str = ", ".join(paper['authors'][:MAX_AUTHORS_DISPLAY])
+                if len(paper['authors']) > MAX_AUTHORS_DISPLAY:
                     author_str += ", et al."
                 title = f"{title} ({author_str})"
             
