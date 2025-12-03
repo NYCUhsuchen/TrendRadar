@@ -1,0 +1,79 @@
+# TrendRadar 學術論文監控簡化配置
+# 只保留學術平台和 Email/LINE 通知功能
+
+app:
+  version_check_url: "https://raw.githubusercontent.com/sansan0/TrendRadar/refs/heads/master/version"
+  show_version_update: false # 關閉版本更新檢查
+
+crawler:
+  request_interval: 2000 # 請求間隔(毫秒)，學術 API 建議設置較長間隔
+  enable_crawler: true
+  use_proxy: false
+  default_proxy: "http://127.0.0.1:10086"
+
+notification:
+  enable_notification: true
+
+  webhooks:
+    # Email 推送（推薦用於學術論文，支持 HTML 格式）
+    email_from: "" # 發件人郵箱
+    email_password: "" # 郵箱密碼或授權碼
+    email_to: "" # 收件人郵箱，多個用逗號分隔
+    email_smtp_server: "" # 可選，留空自動識別
+    email_smtp_port: "" # 可選，留空自動識別
+    
+    # LINE 推送（推薦用於學術論文，支持豐富格式）
+    line_channel_access_token: "" # LINE Channel Access Token
+    line_user_id: "" # LINE User ID 或 Group ID
+
+# 學術平台配置
+platforms:
+  # arXiv - 人工智能
+  - id: "arxiv_ai"
+    name: "arXiv AI"
+    type: "arxiv"
+    query: "cat:cs.AI" # arXiv 類別查詢
+    max_results: 30
+  
+  # arXiv - 機器學習
+  - id: "arxiv_ml"
+    name: "arXiv ML"
+    type: "arxiv"
+    query: "cat:cs.LG"
+    max_results: 30
+  
+  # arXiv - 自然語言處理
+  - id: "arxiv_nlp"
+    name: "arXiv NLP"
+    type: "arxiv"
+    query: "cat:cs.CL"
+    max_results: 30
+  
+  # PubMed - AI 醫學
+  - id: "pubmed_ai_med"
+    name: "PubMed AI醫學"
+    type: "pubmed"
+    query: "artificial intelligence AND medicine"
+    max_results: 20
+    days_back: 7 # 獲取最近7天的論文
+
+# arXiv 查詢語法說明：
+# 1. 按類別查詢：cat:cs.AI（計算機科學-人工智能）
+# 2. 按關鍵詞：ti:neural network（標題中包含）
+#    或 abs:transformer（摘要中包含）
+#    或 all:machine+learning（所有字段）
+# 3. 組合查詢：all:GPT+AND+cat:cs.CL
+#
+# arXiv 主要類別：
+# - cs.AI: 人工智能
+# - cs.CV: 計算機視覺
+# - cs.LG: 機器學習
+# - cs.CL: 自然語言處理
+# - cs.RO: 機器人學
+# - stat.ML: 統計-機器學習
+#
+# PubMed 查詢語法：
+# - 關鍵詞：artificial intelligence
+# - 邏輯運算：AND/OR/NOT
+# - 主題詞：Artificial Intelligence[MeSH]
+# - 標題搜索：COVID-19[Title]
