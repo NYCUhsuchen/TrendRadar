@@ -19,6 +19,21 @@ import pytz
 import requests
 import yaml
 
+# 導入學術平台和 LINE 通知模組
+try:
+    from academic_fetcher import crawl_academic_platforms
+    ACADEMIC_SUPPORT = True
+except ImportError:
+    ACADEMIC_SUPPORT = False
+    print("警告: 未找到 academic_fetcher 模組，學術平台支持已禁用")
+
+try:
+    from line_notifier import send_to_line
+    LINE_SUPPORT = True
+except ImportError:
+    LINE_SUPPORT = False
+    print("警告: 未找到 line_notifier 模組，LINE 通知支持已禁用")
+
 
 VERSION = "3.4.0"
 
@@ -208,6 +223,14 @@ def load_config():
         "slack_webhook_url", ""
     )
 
+    # LINE配置
+    config["LINE_CHANNEL_ACCESS_TOKEN"] = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN", "").strip() or webhooks.get(
+        "line_channel_access_token", ""
+    )
+    config["LINE_USER_ID"] = os.environ.get("LINE_USER_ID", "").strip() or webhooks.get(
+        "line_user_id", ""
+    )
+
     # 输出配置来源信息
     notification_sources = []
     if config["FEISHU_WEBHOOK_URL"]:
@@ -240,6 +263,11 @@ def load_config():
     if config["SLACK_WEBHOOK_URL"]:
         slack_source = "环境变量" if os.environ.get("SLACK_WEBHOOK_URL") else "配置文件"
         notification_sources.append(f"Slack({slack_source})")
+
+    if config["LINE_CHANNEL_ACCESS_TOKEN"] and config["LINE_USER_ID"]:
+        token_source = "环境变量" if os.environ.get("LINE_CHANNEL_ACCESS_TOKEN") else "配置文件"
+        user_source = "环境变量" if os.environ.get("LINE_USER_ID") else "配置文件"
+        notification_sources.append(f"LINE({token_source}/{user_source})")
 
     if notification_sources:
         print(f"通知渠道配置来源: {', '.join(notification_sources)}")
@@ -538,8 +566,59 @@ class DataFetcher:
         self,
         ids_list: List[Union[str, Tuple[str, str]]],
         request_interval: int = CONFIG["REQUEST_INTERVAL"],
+        platform_configs: Optional[List[Dict]] = None,
     ) -> Tuple[Dict, Dict, List]:
-        """爬取多个网站数据"""
+        """爬取多个网站数据（支持社交媒體和學術平台）"""
+        
+        # 檢查是否有學術平台配置
+        academic_platforms = []
+        social_platforms = []
+        
+        if platform_configs:
+            for platform in platform_configs:
+                platform_type = platform.get('type', '')
+                if platform_type in ['arxiv', 'pubmed']:
+                    academic_platforms.append(platform)
+                else:
+                    social_platforms.append(platform)
+        
+        # 處理學術平台
+        if academic_platforms and ACADEMIC_SUPPORT:
+            print(f"\n檢測到 {len(academic_platforms)} 個學術平台配置，使用學術 API 獲取數據...")
+            academic_results, academic_id_to_name, academic_failed = crawl_academic_platforms(
+                academic_platforms,
+                request_interval,
+                self.proxy_url
+            )
+        else:
+            academic_results = {}
+            academic_id_to_name = {}
+            academic_failed = []
+        
+        # 處理社交媒體平台（原有邏輯）
+        if social_platforms or (not platform_configs and ids_list):
+            print(f"\n處理社交媒體平台...")
+            social_results, social_id_to_name, social_failed = self._crawl_social_media(
+                ids_list, request_interval
+            )
+        else:
+            social_results = {}
+            social_id_to_name = {}
+            social_failed = []
+        
+        # 合併結果
+        results = {**academic_results, **social_results}
+        id_to_name = {**academic_id_to_name, **social_id_to_name}
+        failed_ids = academic_failed + social_failed
+        
+        return results, id_to_name, failed_ids
+    
+    def _crawl_social_media(
+        self,
+        ids_list: List[Union[str, Tuple[str, str]]],
+        request_interval: int,
+    ) -> Tuple[Dict, Dict, List]:
+        """爬取社交媒體數據（原有邏輯）"""
         results = {}
         id_to_name = {}
         failed_ids = []
@@ -3423,6 +3502,8 @@ def send_to_notifications(
     ntfy_token = CONFIG.get("NTFY_TOKEN", "")
     bark_url = CONFIG["BARK_URL"]
     slack_webhook_url = CONFIG["SLACK_WEBHOOK_URL"]
+    line_channel_access_token = CONFIG.get("LINE_CHANNEL_ACCESS_TOKEN", "")
+    line_user_id = CONFIG.get("LINE_USER_ID", "")
 
     update_info_to_send = update_info if CONFIG["SHOW_VERSION_UPDATE"] else None
 
@@ -3501,6 +3582,17 @@ def send_to_notifications(
             html_file_path,
             email_smtp_server,
             email_smtp_port,
+        )
+
+    # 发送到 LINE
+    if LINE_SUPPORT and line_channel_access_token and line_user_id:
+        results["line"] = send_to_line(
+            line_channel_access_token,
+            line_user_id,
+            report_data,
+            report_type,
+            proxy_url,
+            use_flex=True,  # 使用 Flex Message 以獲得更好的顯示效果
         )
 
     if not results:
@@ -4485,6 +4577,7 @@ class NewsAnalyzer:
                 (CONFIG["NTFY_SERVER_URL"] and CONFIG["NTFY_TOPIC"]),
                 CONFIG["BARK_URL"],
                 CONFIG["SLACK_WEBHOOK_URL"],
+                (CONFIG.get("LINE_CHANNEL_ACCESS_TOKEN") and CONFIG.get("LINE_USER_ID")),
             ]
         )
 
@@ -4760,8 +4853,9 @@ class NewsAnalyzer:
         print(f"开始爬取数据，请求间隔 {self.request_interval} 毫秒")
         ensure_directory_exists("output")
 
+        # 傳遞完整的平台配置以支持學術平台
         results, id_to_name, failed_ids = self.data_fetcher.crawl_websites(
-            ids, self.request_interval
+            ids, self.request_interval, platform_configs=CONFIG["PLATFORMS"]
         )
 
         title_file = save_titles_to_file(results, id_to_name, failed_ids)
